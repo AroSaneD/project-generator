@@ -1,0 +1,27 @@
+{
+    "name": "@arosaned/project-generator",
+    "version": "0.0.1",
+    "description": "Project that contains cli tools and templates to generate npm based projects",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "ts-node src/index.ts",
+        "build": "tsc && shx rm -rf dist/templates && shx cp -r src/templates dist"
+    },
+    "bin": {
+        "template-generator": "./dist/index.js"
+    },
+    "author": "AroSaneD",
+    "license": "MIT",
+    "devDependencies": {
+        "@types/inquirer": "^7.3.3",
+        "@types/node": "^16.4.13",
+        "nodemon": "^2.0.12",
+        "shx": "^0.3.3",
+        "ts-node": "^10.1.0",
+        "typescript": "^4.3.5"
+    },
+    "dependencies": {
+        "inquirer": "^8.1.2"
+    }
+}
