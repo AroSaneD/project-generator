@@ -9,11 +9,12 @@
         "build": "tsc && shx rm -rf dist/templates && shx cp -r src/templates dist"
     },
     "bin": {
-        "template-generator": "./dist/index.js"
+        "arsd-generate-project": "./dist/index.js"
     },
     "author": "AroSaneD",
     "license": "MIT",
     "devDependencies": {
+        "@types/ejs": "^3.1.0",
         "@types/inquirer": "^7.3.3",
         "@types/node": "^16.4.13",
         "nodemon": "^2.0.12",
@@ -22,6 +23,7 @@
         "typescript": "^4.3.5"
     },
     "dependencies": {
+        "ejs": "^3.1.6",
         "inquirer": "^8.1.2"
     }
 }

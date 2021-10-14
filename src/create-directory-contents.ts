@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
+import { render } from "./utils/template";
 
 const SKIP_FILES = ["node_modules", ".template.json"];
 
@@ -22,7 +23,9 @@ export function createDirectoryContents(
 
         if (stats.isFile()) {
             // read file content and transform it using template engine
-            let contents = fs.readFileSync(origFilePath, "utf8");
+            const contents = render(fs.readFileSync(origFilePath, "utf8"), {
+                projectName,
+            });
             // write file to destination folder
             const writePath = path.join(currDir, projectName, file);
             fs.writeFileSync(writePath, contents, "utf8");

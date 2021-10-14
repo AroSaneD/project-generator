@@ -22,6 +22,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createDirectoryContents = void 0;
 var fs = __importStar(require("fs"));
 var path = __importStar(require("path"));
+var template_1 = require("./utils/template");
 var SKIP_FILES = ["node_modules", ".template.json"];
 function createDirectoryContents(currDir, templatePath, projectName) {
     // read all files/folders (1 level) from template folder
@@ -36,7 +37,9 @@ function createDirectoryContents(currDir, templatePath, projectName) {
             return;
         if (stats.isFile()) {
             // read file content and transform it using template engine
-            var contents = fs.readFileSync(origFilePath, "utf8");
+            var contents = template_1.render(fs.readFileSync(origFilePath, "utf8"), {
+                projectName: projectName,
+            });
             // write file to destination folder
             var writePath = path.join(currDir, projectName, file);
             fs.writeFileSync(writePath, contents, "utf8");
