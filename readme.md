@@ -20,3 +20,4 @@ And follow the on screen questions/instructions.
 * Automatically populate readme with list from templates folder?
 * Add ability to describe secondary steps to templates (e.g. ask whether to add routing in react apps)
 * Move templates folder outside of src
+* Try enforing .cmd extension through shebang
