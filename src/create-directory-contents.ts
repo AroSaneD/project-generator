@@ -24,7 +24,7 @@ export function createDirectoryContents(
         if (stats.isFile()) {
             // read file content and transform it using template engine
             const contents = render(fs.readFileSync(origFilePath, "utf8"), {
-                projectName,
+                projectName: projectName,
             });
             // write file to destination folder
             const writePath = path.join(currDir, projectName, file);
