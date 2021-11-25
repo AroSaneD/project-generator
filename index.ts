@@ -4,9 +4,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as inquirer from 'inquirer';
 import chalk from 'chalk';
-import { createProject } from './create-project';
-import { CliOptions } from './cli-options';
-import { createDirectoryContents } from './create-directory-contents';
+import { createProject } from './src/create-project';
+import { CliOptions } from './src/cli-options';
+import { createDirectoryContents } from './src/create-directory-contents';
 
 const CHOICES = fs.readdirSync(path.join(__dirname, 'templates'));
 const QUESTIONS = [

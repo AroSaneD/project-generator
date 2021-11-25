@@ -3,7 +3,7 @@
     "declaration": true,
     "sourceMap": true,
     "outDir": "dist",
-    "rootDir": "src",
+    "rootDir": ".",
     /* Visit https://aka.ms/tsconfig.json to read more about this file */
 
     /* Basic Options */
