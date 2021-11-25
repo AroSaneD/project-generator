@@ -1,4 +1,4 @@
-import * as ejs from "ejs";
+import * as ejs from 'ejs';
 
 export interface TemplateData {
     projectName: string;

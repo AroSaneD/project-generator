@@ -1,25 +1,25 @@
 #!/usr/bin/env ts-node
 
-import * as fs from "fs";
-import * as path from "path";
-import * as inquirer from "inquirer";
-import chalk from "chalk";
-import { createProject } from "./create-project";
-import { CliOptions } from "./cli-options";
-import { createDirectoryContents } from "./create-directory-contents";
+import * as fs from 'fs';
+import * as path from 'path';
+import * as inquirer from 'inquirer';
+import chalk from 'chalk';
+import { createProject } from './create-project';
+import { CliOptions } from './cli-options';
+import { createDirectoryContents } from './create-directory-contents';
 
-const CHOICES = fs.readdirSync(path.join(__dirname, "templates"));
+const CHOICES = fs.readdirSync(path.join(__dirname, 'templates'));
 const QUESTIONS = [
     {
-        name: "template",
-        type: "list",
-        message: "What project template would you like to use?",
+        name: 'template',
+        type: 'list',
+        message: 'What project template would you like to use?',
         choices: CHOICES,
     },
     {
-        name: "name",
-        type: "input",
-        message: "New project name?",
+        name: 'name',
+        type: 'input',
+        message: 'New project name?',
     },
 ];
 
@@ -28,9 +28,9 @@ const QUESTIONS = [
 // });
 const CURR_DIR = process.cwd();
 inquirer.prompt(QUESTIONS).then((answers) => {
-    const projectChoice = answers["template"];
-    const projectName = answers["name"];
-    const templatePath = path.join(__dirname, "templates", projectChoice);
+    const projectChoice = answers['template'];
+    const projectName = answers['name'];
+    const templatePath = path.join(__dirname, 'templates', projectChoice);
     const tartgetPath = path.join(CURR_DIR, projectName);
     const options: CliOptions = {
         projectName,
@@ -40,6 +40,11 @@ inquirer.prompt(QUESTIONS).then((answers) => {
     };
     console.log(options);
 
+    // ? extendable templates
+    // todo: add environment checking
+    //      todo: rush integration
+    //      ? routes?
+    //      ? should it be per template?
     if (!createProject(tartgetPath)) {
         return;
     }
