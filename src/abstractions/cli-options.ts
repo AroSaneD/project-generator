@@ -1,6 +1,7 @@
 export interface CliOptions {
-    projectName: string;
+    currDir: string;
+    itemName: string;
+    itemPath: string;
     templateName: string;
     templatePath: string;
-    tartgetPath: string;
 }
