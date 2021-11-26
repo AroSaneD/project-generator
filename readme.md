@@ -6,11 +6,9 @@ Utility to automate creation of projects I typically use for rapid prototyping.
 Recommended approach is to install this repo globally, then use `arsd-generate-project.cmd` (arsd *tab* should auto complete it) at the location where you wish to create the project. 
 (A new folder will be created at the location of calling the script)
 
-Warning: Requires `ts-node` installed globally. Do not omit the ".cmd" part, as it will then try to use ts-node as an executable, for which there will be no registry in the path.
-
 Example use case would be:
 
-```arsd-generate-project.cmd```
+```arsd-generate-project```
 
 And follow the on screen questions/instructions.
 
