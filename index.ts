@@ -4,9 +4,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as inquirer from 'inquirer';
 import chalk from 'chalk';
-import { createProject } from './src/utils/create-project';
-import { CliOptions } from './src/cli-options';
-import { createDirectoryContents } from './src/create-directory-contents';
+// import { createProject } from './src/utils/create-project';
+import { CliOptions } from './src/abstractions/cli-options';
+// import { createDirectoryContents } from './src/create-directory-contents';
 
 const CHOICES = fs.readdirSync(path.join(__dirname, 'templates'));
 const QUESTIONS = [
@@ -33,10 +33,11 @@ inquirer.prompt(QUESTIONS).then((answers) => {
     const templatePath = path.join(__dirname, 'templates', projectChoice);
     const tartgetPath = path.join(CURR_DIR, projectName);
     const options: CliOptions = {
-        projectName,
+        currDir: __dirname,
+        itemName: projectName,
         templateName: projectChoice,
         templatePath,
-        tartgetPath,
+        itemPath: tartgetPath,
     };
     console.log(options);
 
