@@ -1,10 +1,10 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env node
 
 import * as fs from 'fs';
 import * as path from 'path';
 import * as inquirer from 'inquirer';
 import chalk from 'chalk';
-import { createProject } from './src/create-project';
+import { createProject } from './src/utils/create-project';
 import { CliOptions } from './src/cli-options';
 import { createDirectoryContents } from './src/create-directory-contents';
 
