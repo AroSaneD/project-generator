@@ -11,7 +11,8 @@ import { CliOptions } from './src/abstractions/cli-options';
 import { CreateProjectModule } from './src/modules/create-project.module';
 import { PathService } from './src/services/path.service';
 import { FileStreamService } from './src/services/filestream.service';
-import { catchError, of, lastValueFrom } from 'rxjs';
+import { catchError, of, lastValueFrom, concat } from 'rxjs';
+import { AModule } from './src/abstractions/a-module';
 // import { createDirectoryContents } from './src/create-directory-contents';
 
 const CHOICES = fs.readdirSync(path.join(__dirname, 'templates'));
@@ -58,14 +59,18 @@ inquirer.prompt(QUESTIONS).then((answers) => {
         new FileStreamService(),
         options
     );
+    // todo: get tags from projeect
+    // todo: get modules for each tag
+    // ! DO NOT TRY TO MAKE A DYNAMIC FACTORY THAT INJECTS TAGS
 
-    // ? ecursion to go through list of modules?
-    lastValueFrom(
-        createProject.apply().pipe(
-            catchError((err, err$) => {
-                console.log(chalk.red(err));
-                return of();
-            })
-        )
+    const modules: AModule[] = [createProject];
+    const moduleApplies = modules.map((m) => m.apply());
+    const processObs = concat(...moduleApplies).pipe(
+        catchError((err, err$) => {
+            console.log(chalk.red(err));
+            return of();
+        })
     );
+
+    return lastValueFrom(processObs);
 });
