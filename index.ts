@@ -39,7 +39,7 @@ inquirer.prompt(QUESTIONS).then((answers) => {
     const templatePath = path.join(__dirname, 'templates', projectChoice);
     const tartgetPath = path.join(CURR_DIR, projectName);
     const options: CliOptions = {
-        currDir: __dirname,
+        currDir: CURR_DIR,
         itemName: projectName,
         templateName: projectChoice,
         templatePath,
