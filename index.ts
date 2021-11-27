@@ -1,11 +1,17 @@
 #!/usr/bin/env node
 
+import 'reflect-metadata';
+
 import * as fs from 'fs';
 import * as path from 'path';
 import * as inquirer from 'inquirer';
 import chalk from 'chalk';
 // import { createProject } from './src/utils/create-project';
 import { CliOptions } from './src/abstractions/cli-options';
+import { CreateProjectModule } from './src/modules/create-project.module';
+import { PathService } from './src/services/path.service';
+import { FileStreamService } from './src/services/filestream.service';
+import { catchError, of, lastValueFrom } from 'rxjs';
 // import { createDirectoryContents } from './src/create-directory-contents';
 
 const CHOICES = fs.readdirSync(path.join(__dirname, 'templates'));
@@ -46,9 +52,20 @@ inquirer.prompt(QUESTIONS).then((answers) => {
     //      todo: rush integration
     //      ? routes?
     //      ? should it be per template?
-    if (!createProject(tartgetPath)) {
-        return;
-    }
 
-    createDirectoryContents(CURR_DIR, templatePath, projectName);
+    const createProject = new CreateProjectModule(
+        new PathService(),
+        new FileStreamService(),
+        options
+    );
+
+    // ? ecursion to go through list of modules?
+    lastValueFrom(
+        createProject.apply().pipe(
+            catchError((err, err$) => {
+                console.log(chalk.red(err));
+                return of();
+            })
+        )
+    );
 });

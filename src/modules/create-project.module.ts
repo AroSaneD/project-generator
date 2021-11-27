@@ -21,6 +21,7 @@ export class CreateProjectModule extends AModule {
     apply(): Observable<void> {
         return of(null).pipe(
             map((_) => {
+                console.log('Creating project');
                 this.#createProjectFolder();
                 this.#createDirectoryContents(
                     this.baseOptions.currDir,

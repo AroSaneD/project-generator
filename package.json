@@ -28,6 +28,7 @@
         "inquirer": "^8.1.2",
         "inversify": "^6.0.1",
         "jsonc-parser": "^3.0.0",
+        "reflect-metadata": "^0.1.13",
         "rxjs": "^7.4.0"
     }
 }
