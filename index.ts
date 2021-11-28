@@ -1,53 +1,63 @@
 #!/usr/bin/env node
 
-import * as fs from 'fs';
-import * as path from 'path';
-import * as inquirer from 'inquirer';
+import 'reflect-metadata';
+
 import chalk from 'chalk';
-import { createProject } from './src/utils/create-project';
-import { CliOptions } from './src/cli-options';
-import { createDirectoryContents } from './src/create-directory-contents';
+import { CreateProjectModule } from './src/modules/create-project.module';
+import { PathService } from './src/services/path.service';
+import { catchError, of, lastValueFrom, concat, from } from 'rxjs';
+import { AModule } from './src/abstractions/a-module';
+import { Container } from 'inversify';
+import { UserChoiceService } from './src/services/user-choice.service';
 
-const CHOICES = fs.readdirSync(path.join(__dirname, 'templates'));
-const QUESTIONS = [
-    {
-        name: 'template',
-        type: 'list',
-        message: 'What project template would you like to use?',
-        choices: CHOICES,
-    },
-    {
-        name: 'name',
-        type: 'input',
-        message: 'New project name?',
-    },
-];
+// ? extendable templates
+// todo: add environment checking
+//      todo: rush integration
+//      ? routes?
+//      ? should it be per template?
 
-// inquirer.prompt(QUESTIONS).then((answers) => {
-//     console.log(answers);
-// });
 const CURR_DIR = process.cwd();
-inquirer.prompt(QUESTIONS).then((answers) => {
-    const projectChoice = answers['template'];
-    const projectName = answers['name'];
-    const templatePath = path.join(__dirname, 'templates', projectChoice);
-    const tartgetPath = path.join(CURR_DIR, projectName);
-    const options: CliOptions = {
-        projectName,
-        templateName: projectChoice,
-        templatePath,
-        tartgetPath,
-    };
-    console.log(options);
+const container = new Container({
+    autoBindInjectable: true,
+    skipBaseClassChecks: true,
+});
 
-    // ? extendable templates
-    // todo: add environment checking
-    //      todo: rush integration
-    //      ? routes?
-    //      ? should it be per template?
-    if (!createProject(tartgetPath)) {
-        return;
-    }
+container
+    .bind('templatesPath')
+    .toDynamicValue((ctx) => {
+        const path = ctx.container.get(PathService);
+        return path.join(__dirname, 'templates');
+    })
+    .inSingletonScope();
 
-    createDirectoryContents(CURR_DIR, templatePath, projectName);
+container
+    .bind('currDir')
+    .toDynamicValue((ctx) => {
+        return CURR_DIR;
+    })
+    .inSingletonScope();
+
+// ? Unsure how this will affect tag-dynamic injection
+container
+    .bind('options')
+    .toDynamicValue((ctx) => {
+        const choice = ctx.container.get(UserChoiceService);
+
+        return lastValueFrom(choice.selectTemplate());
+    })
+    .inSingletonScope();
+
+container.getAsync(CreateProjectModule).then((cpm) => {
+    // todo: get tags from project
+    // todo: get modules for each tag
+    const modules: AModule[] = [cpm];
+    const moduleApplies = modules.map((m) => m.apply());
+    const processObs = concat(...moduleApplies).pipe(
+        catchError((err, err$) => {
+            console.log(chalk.red(err));
+            return of();
+        })
+    );
+
+    return lastValueFrom(processObs);
 });
