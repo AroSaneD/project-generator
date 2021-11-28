@@ -11,21 +11,15 @@ export class UserChoiceService {
     selectTemplate(): Observable<CliOptions> {
         return this.templateService.getTemplates().pipe(
             map((t) => this.getQuestions(t)),
-            switchMap(q => from(inquirer.prompt(q))),
+            switchMap((q) => inquirer.prompt(q)),
             map((answers: any) => {
                 const projectChoice = answers['template'];
                 const projectName = answers['name'];
-                // const tartgetPath = path.join(CURR_DIR, projectName);
 
-                const options: CliOptions = {
-                    // currDir: CURR_DIR,
+                return {
                     itemName: projectName,
                     templateName: projectChoice,
-                    // templatePath,
-                    // itemPath: tartgetPath,
-                };
-
-                return options;
+                } as CliOptions;
             }),
             take(1),
             shareReplay(1)

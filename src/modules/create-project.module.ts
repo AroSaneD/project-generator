@@ -1,6 +1,5 @@
 import { inject, injectable } from 'inversify';
 import { map, Observable, of } from 'rxjs';
-// import chalk from 'chalk';
 import { AModule } from '../abstractions/a-module';
 import { CliOptions } from '../abstractions/cli-options';
 import { FileStreamService } from '../services/filestream.service';
@@ -27,7 +26,6 @@ export class CreateProjectModule extends AModule {
             .getTemplateDetails(this.baseOptions.templateName)
             .pipe(
                 map((template) => {
-                    console.log('Creating project');
                     this.#createProjectFolder();
                     this.#createDirectoryContents(
                         this.currDir,
