@@ -1,7 +1,7 @@
 export interface CliOptions {
-    currDir: string;
+    // currDir: string;
     itemName: string;
-    itemPath: string;
+    // itemPath: string;
     templateName: string;
-    templatePath: string;
+    // templatePath: string;
 }

@@ -1,43 +1,51 @@
-import { inject } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { map, Observable, of } from 'rxjs';
 // import chalk from 'chalk';
 import { AModule } from '../abstractions/a-module';
 import { CliOptions } from '../abstractions/cli-options';
 import { FileStreamService } from '../services/filestream.service';
 import { PathService } from '../services/path.service';
+import { TemplateService } from '../services/template.service';
 import { render } from '../utils/template';
 
+@injectable()
 export class CreateProjectModule extends AModule {
     private readonly SKIP_FILES = ['node_modules', '.template.json'];
 
     constructor(
+        @inject('currDir') private currDir: string,
         private path: PathService,
         private fs: FileStreamService,
-        @inject('options') private options: CliOptions
+        private templates: TemplateService,
+        @inject('options') options: CliOptions
     ) {
         super(options);
     }
 
     apply(): Observable<void> {
-        return of(null).pipe(
-            map((_) => {
-                console.log('Creating project');
-                this.#createProjectFolder();
-                this.#createDirectoryContents(
-                    this.baseOptions.currDir,
-                    this.baseOptions.templatePath,
-                    this.baseOptions.itemName
-                );
-            })
-        );
+        return this.templates
+            .getTemplateDetails(this.baseOptions.templateName)
+            .pipe(
+                map((template) => {
+                    console.log('Creating project');
+                    this.#createProjectFolder();
+                    this.#createDirectoryContents(
+                        this.currDir,
+                        template.path,
+                        this.baseOptions.itemName
+                    );
+                })
+            );
     }
 
     #createProjectFolder(): boolean {
-        const projectPath = this.baseOptions.itemPath;
+        const projectPath = this.path.join(
+            this.currDir,
+            this.baseOptions.itemName
+        );
 
         if (this.fs.existsSync(projectPath)) {
             const msg = `Folder ${projectPath} exists. Delete or use another name.`;
-            // console.log(chalk.red(msg));
             throw new Error(msg);
         }
         this.fs.mkdirSync(projectPath);

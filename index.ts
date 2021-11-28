@@ -2,68 +2,55 @@
 
 import 'reflect-metadata';
 
-import * as fs from 'fs';
-import * as path from 'path';
-import * as inquirer from 'inquirer';
 import chalk from 'chalk';
-// import { createProject } from './src/utils/create-project';
-import { CliOptions } from './src/abstractions/cli-options';
 import { CreateProjectModule } from './src/modules/create-project.module';
 import { PathService } from './src/services/path.service';
-import { FileStreamService } from './src/services/filestream.service';
-import { catchError, of, lastValueFrom, concat } from 'rxjs';
+import { catchError, of, lastValueFrom, concat, from } from 'rxjs';
 import { AModule } from './src/abstractions/a-module';
-// import { createDirectoryContents } from './src/create-directory-contents';
+import { Container } from 'inversify';
+import { UserChoiceService } from './src/services/user-choice.service';
 
-const CHOICES = fs.readdirSync(path.join(__dirname, 'templates'));
-const QUESTIONS = [
-    {
-        name: 'template',
-        type: 'list',
-        message: 'What project template would you like to use?',
-        choices: CHOICES,
-    },
-    {
-        name: 'name',
-        type: 'input',
-        message: 'New project name?',
-    },
-];
+// ? extendable templates
+// todo: add environment checking
+//      todo: rush integration
+//      ? routes?
+//      ? should it be per template?
 
-// inquirer.prompt(QUESTIONS).then((answers) => {
-//     console.log(answers);
-// });
 const CURR_DIR = process.cwd();
-inquirer.prompt(QUESTIONS).then((answers) => {
-    const projectChoice = answers['template'];
-    const projectName = answers['name'];
-    const templatePath = path.join(__dirname, 'templates', projectChoice);
-    const tartgetPath = path.join(CURR_DIR, projectName);
-    const options: CliOptions = {
-        currDir: CURR_DIR,
-        itemName: projectName,
-        templateName: projectChoice,
-        templatePath,
-        itemPath: tartgetPath,
-    };
-    console.log(options);
+const container = new Container({
+    autoBindInjectable: true,
+    skipBaseClassChecks: true,
+});
 
-    // ? extendable templates
-    // todo: add environment checking
-    //      todo: rush integration
-    //      ? routes?
-    //      ? should it be per template?
+container
+    .bind('templatesPath')
+    .toDynamicValue((ctx) => {
+        const path = ctx.container.get(PathService);
+        return path.join(__dirname, 'templates');
+    })
+    .inSingletonScope();
 
-    const createProject = new CreateProjectModule(
-        new PathService(),
-        new FileStreamService(),
-        options
-    );
-    // todo: get tags from projeect
+container
+    .bind('currDir')
+    .toDynamicValue((ctx) => {
+        return CURR_DIR;
+    })
+    .inSingletonScope();
+
+// ? Unsure how this will affect tag-dynamic injection
+container
+    .bind('options')
+    .toDynamicValue((ctx) => {
+        const choice = ctx.container.get(UserChoiceService);
+
+        return lastValueFrom(choice.selectTemplate());
+    })
+    .inSingletonScope();
+
+container.getAsync(CreateProjectModule).then((cpm) => {
+    // todo: get tags from project
     // todo: get modules for each tag
-    // ! DO NOT TRY TO MAKE A DYNAMIC FACTORY THAT INJECTS TAGS
-
-    const modules: AModule[] = [createProject];
+    const modules: AModule[] = [cpm];
     const moduleApplies = modules.map((m) => m.apply());
     const processObs = concat(...moduleApplies).pipe(
         catchError((err, err$) => {
