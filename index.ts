@@ -3,11 +3,11 @@
 import 'reflect-metadata';
 
 import chalk from 'chalk';
+import { catchError, of, lastValueFrom, concat } from 'rxjs';
+import { Container } from 'inversify';
 import { CreateProjectModule } from './src/modules/create-project.module';
 import { PathService } from './src/services/path.service';
-import { catchError, of, lastValueFrom, concat, from } from 'rxjs';
 import { AModule } from './src/abstractions/a-module';
-import { Container } from 'inversify';
 import { UserChoiceService } from './src/services/user-choice.service';
 
 // ? extendable templates
@@ -24,7 +24,7 @@ const container = new Container({
 
 container
     .bind('templatesPath')
-    .toDynamicValue((ctx) => {
+    .toDynamicValue(ctx => {
         const path = ctx.container.get(PathService);
         return path.join(__dirname, 'templates');
     })
@@ -32,31 +32,29 @@ container
 
 container
     .bind('currDir')
-    .toDynamicValue((ctx) => {
-        return CURR_DIR;
-    })
+    .toDynamicValue(() => CURR_DIR)
     .inSingletonScope();
 
 // ? Unsure how this will affect tag-dynamic injection
 container
     .bind('options')
-    .toDynamicValue((ctx) => {
+    .toDynamicValue(ctx => {
         const choice = ctx.container.get(UserChoiceService);
 
         return lastValueFrom(choice.selectTemplate());
     })
     .inSingletonScope();
 
-container.getAsync(CreateProjectModule).then((cpm) => {
+container.getAsync(CreateProjectModule).then(cpm => {
     // todo: get tags from project
     // todo: get modules for each tag
     const modules: AModule[] = [cpm];
-    const moduleApplies = modules.map((m) => m.apply());
+    const moduleApplies = modules.map(m => m.apply());
     const processObs = concat(...moduleApplies).pipe(
-        catchError((err, err$) => {
+        catchError(err => {
             console.log(chalk.red(err));
             return of();
-        })
+        }),
     );
 
     return lastValueFrom(processObs);

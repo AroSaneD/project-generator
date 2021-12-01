@@ -1,20 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import {
-    parse,
-    createScanner,
-    modify,
-    JSONPath,
-    applyEdits,
-} from 'jsonc-parser';
+import { parse, createScanner, modify, JSONPath, applyEdits } from 'jsonc-parser';
 
-const filePath = path.join(
-    __dirname,
-    'templates',
-    'ts-project',
-    '_gen-files',
-    'gen.json'
-);
+const filePath = path.join(__dirname, 'templates', 'ts-project', '_gen-files', 'gen.json');
 const fileContent = fs.readFileSync(filePath, 'utf-8');
 // const parsed = parse(fileContent, undefined, {
 //     allowEmptyContent: true,
@@ -31,11 +19,11 @@ const edits = modify(
         b: 'test2',
     },
     {
-        getInsertionIndex: (properties) => {
+        getInsertionIndex: properties => {
             return properties.length;
         },
-        isArrayInsertion: true
-    }
+        isArrayInsertion: true,
+    },
 );
 const result = applyEdits(fileContent, edits);
 fs.writeFileSync(filePath, result, 'utf-8');
