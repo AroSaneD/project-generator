@@ -3,12 +3,14 @@
 import 'reflect-metadata';
 
 import chalk from 'chalk';
-import { catchError, of, lastValueFrom, concat } from 'rxjs';
+import { catchError, of, lastValueFrom, concat, from, switchMap } from 'rxjs';
 import { Container } from 'inversify';
 import { CreateProjectModule } from './src/modules/create-project.module';
 import { PathService } from './src/services/path.service';
 import { AModule } from './src/abstractions/a-module';
 import { UserChoiceService } from './src/services/user-choice.service';
+import { CliOptions } from './src/abstractions/cli-options';
+import { getTagsByProject, Tag } from './src/tags';
 
 // ? extendable templates
 // todo: add environment checking
@@ -45,10 +47,32 @@ container
     })
     .inSingletonScope();
 
-container.getAsync(CreateProjectModule).then(cpm => {
+container.bind<AModule[]>('modules').toDynamicValue(ctx => {
+    const modulesObs = from(ctx.container.getAsync<CliOptions>('options')).pipe(
+        switchMap(options => {
+            const tags = getTagsByProject(options.templateName);
+            const modules = tags
+                .flatMap(tag => {
+                    // Append as added
+                    switch (tag) {
+                        case Tag.PROJECT:
+                            return [CreateProjectModule];
+                        default:
+                            return [];
+                    }
+                })
+                .map(m => ctx.container.getAsync(m));
+
+            return Promise.all(modules);
+        }),
+    );
+
+    return lastValueFrom(modulesObs);
+});
+
+container.getAsync<AModule[]>('modules').then(modules => {
     // todo: get tags from project
     // todo: get modules for each tag
-    const modules: AModule[] = [cpm];
     const moduleApplies = modules.map(m => m.apply());
     const processObs = concat(...moduleApplies).pipe(
         catchError(err => {
