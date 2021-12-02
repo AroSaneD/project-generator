@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { map, Observable, of } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { AModule } from '../abstractions/a-module';
 import { CliOptions } from '../abstractions/cli-options';
 import { FileStreamService } from '../services/filestream.service';
@@ -16,31 +16,26 @@ export class CreateProjectModule extends AModule {
         private path: PathService,
         private fs: FileStreamService,
         private templates: TemplateService,
-        @inject('options') options: CliOptions
+        @inject('options') options: CliOptions,
     ) {
         super(options);
     }
 
     apply(): Observable<void> {
-        return this.templates
-            .getTemplateDetails(this.baseOptions.templateName)
-            .pipe(
-                map((template) => {
-                    this.#createProjectFolder();
-                    this.#createDirectoryContents(
-                        this.currDir,
-                        template.path,
-                        this.baseOptions.itemName
-                    );
-                })
-            );
+        return this.templates.getTemplateDetails(this.baseOptions.templateName).pipe(
+            map(template => {
+                this.#createProjectFolder();
+                this.#createDirectoryContents(
+                    this.currDir,
+                    template.path,
+                    this.baseOptions.itemName,
+                );
+            }),
+        );
     }
 
     #createProjectFolder(): boolean {
-        const projectPath = this.path.join(
-            this.currDir,
-            this.baseOptions.itemName
-        );
+        const projectPath = this.path.join(this.currDir, this.baseOptions.itemName);
 
         if (this.fs.existsSync(projectPath)) {
             const msg = `Folder ${projectPath} exists. Delete or use another name.`;
@@ -51,15 +46,11 @@ export class CreateProjectModule extends AModule {
         return true;
     }
 
-    #createDirectoryContents(
-        currDir: string,
-        templatePath: string,
-        projectName: string
-    ) {
+    #createDirectoryContents(currDir: string, templatePath: string, projectName: string) {
         // read all files/folders (1 level) from template folder
         const filesToCreate = this.fs.readdirSync(templatePath);
         // loop each file/folder
-        filesToCreate.forEach((file) => {
+        filesToCreate.forEach(file => {
             const origFilePath = this.path.join(templatePath, file);
 
             // get stats about the current file
@@ -71,7 +62,7 @@ export class CreateProjectModule extends AModule {
             if (stats.isFile()) {
                 // read file content and transform it using template engine
                 const contents = render(this.fs.readFileSync(origFilePath), {
-                    projectName: projectName,
+                    projectName,
                 });
                 // write file to destination folder
                 const writePath = this.path.join(currDir, projectName, file);
@@ -83,7 +74,7 @@ export class CreateProjectModule extends AModule {
                 this.#createDirectoryContents(
                     currDir,
                     this.path.join(templatePath, file),
-                    this.path.join(projectName, file)
+                    this.path.join(projectName, file),
                 );
             }
         });
