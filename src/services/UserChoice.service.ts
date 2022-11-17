@@ -1,8 +1,10 @@
 import * as inquirer from 'inquirer';
 import { injectable } from 'inversify';
-import { map, Observable, take, shareReplay, switchMap, from } from 'rxjs';
-import { CliOptions } from '../abstractions/cli-options';
-import { TemplateService } from './template.service';
+import { map, Observable, take, shareReplay, switchMap } from 'rxjs';
+import { CliOptions } from '../abstractions/CliOptions';
+import { TemplateService } from './Template.service';
+
+type PromptResponse = { template: string; name: string };
 
 @injectable()
 export class UserChoiceService {
@@ -10,11 +12,11 @@ export class UserChoiceService {
 
     selectTemplate(): Observable<CliOptions> {
         return this.templateService.getTemplates().pipe(
-            map((t) => this.getQuestions(t)),
-            switchMap((q) => inquirer.prompt(q)),
-            map((answers: any) => {
-                const projectChoice = answers['template'];
-                const projectName = answers['name'];
+            map(t => this.getQuestions(t)),
+            switchMap(q => inquirer.prompt(q) as Promise<PromptResponse>),
+            map((answers: PromptResponse) => {
+                const projectChoice = answers.template;
+                const projectName = answers.name;
 
                 return {
                     itemName: projectName,
@@ -22,13 +24,11 @@ export class UserChoiceService {
                 } as CliOptions;
             }),
             take(1),
-            shareReplay(1)
+            shareReplay(1),
         );
     }
 
-    private getQuestions(
-        templates: string[]
-    ): Parameters<typeof inquirer.prompt>[0] {
+    private getQuestions(templates: string[]): Parameters<typeof inquirer.prompt>[0] {
         return [
             {
                 name: 'template',
