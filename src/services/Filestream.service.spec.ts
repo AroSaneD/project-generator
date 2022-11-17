@@ -1,4 +1,4 @@
-import { FileStreamService } from './filestream.service';
+import { FileStreamService } from './Filestream.service';
 
 describe('Filestream unit tests', () => {
     test('should construct', () => {

@@ -1,11 +1,11 @@
 import { inject, injectable } from 'inversify';
 import { map, Observable } from 'rxjs';
-import { AModule } from '../abstractions/a-module';
-import { CliOptions } from '../abstractions/cli-options';
-import { FileStreamService } from '../services/filestream.service';
-import { PathService } from '../services/path.service';
-import { TemplateService } from '../services/template.service';
-import { render } from '../utils/template';
+import { AModule } from '../abstractions/AModule';
+import { CliOptions } from '../abstractions/CliOptions';
+import { FileStreamService } from '../services/Filestream.service';
+import { PathService } from '../services/Path.service';
+import { TemplateService } from '../services/Template.service';
+import { render } from '../utils/Template';
 
 @injectable()
 export class CreateProjectModule extends AModule {
@@ -19,6 +19,16 @@ export class CreateProjectModule extends AModule {
         @inject('options') options: CliOptions,
     ) {
         super(options);
+    }
+
+    shouldApply(): Observable<void> {
+        /* todo: 
+            Get selected template? Will probably need to be part of a previous module. Results of that module injected directly here?
+            If basic, create. If external, run script.
+            
+            */
+
+        throw new Error('Not implemented');
     }
 
     apply(): Observable<void> {

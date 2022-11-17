@@ -5,16 +5,17 @@ import 'reflect-metadata';
 import chalk from 'chalk';
 import { catchError, of, lastValueFrom, concat, from, switchMap } from 'rxjs';
 import { Container } from 'inversify';
-import { CreateProjectModule } from './src/modules/create-project.module';
-import { PathService } from './src/services/path.service';
-import { AModule } from './src/abstractions/a-module';
-import { UserChoiceService } from './src/services/user-choice.service';
-import { CliOptions } from './src/abstractions/cli-options';
-import { getTagsByProject, Tag } from './src/tags';
+import { CreateProjectModule } from './src/modules/CreateProject.module';
+import { PathService } from './src/services/Path.service';
+import { AModule } from './src/abstractions/AModule';
+import { UserChoiceService } from './src/services/UserChoice.service';
+import { CliOptions } from './src/abstractions/CliOptions';
+import { getTagsByProject, Tag } from './src/Tags';
 
 // ? extendable templates
 // todo: add environment checking
-//      todo: rush integration
+//      todo: turbo integration
+//      todo: .NET-like options. Probably a generic class, that is configured during bind
 //      ? routes?
 //      ? should it be per template?
 
@@ -83,3 +84,12 @@ container.getAsync<AModule[]>('modules').then(modules => {
 
     return lastValueFrom(processObs);
 });
+
+/* 
+    Sneaking suspicion  the .NET way would be to trigger an event chain from one module to the next based on a predefined workflow
+    Possible workflow would be:
+        1. Select template 
+        2. Execute builder based on template type (based on folder?)
+            2.1 Any dynamic workflows should probably be exected from inside the external template creation module?
+        3. Execute optional modules, e.g. monorepo inclusion
+*/
