@@ -1,51 +1,36 @@
 import { inject, injectable } from 'inversify';
-import { map, Observable } from 'rxjs';
-import { AModule } from '../abstractions/AModule';
-import { CliOptions } from '../abstractions/CliOptions';
+import { ANotificationHandler } from '../events/ANotificationHandler';
+import { UserInputNotification } from '../events/UserInputNotification';
 import { FileStreamService } from '../services/Filestream.service';
 import { PathService } from '../services/Path.service';
 import { TemplateService } from '../services/Template.service';
 import { render } from '../utils/Template';
 
 @injectable()
-export class CreateProjectModule extends AModule {
+export class CreateProjectModule extends ANotificationHandler<UserInputNotification> {
     private readonly SKIP_FILES = ['node_modules', '.template.json'];
 
     constructor(
         @inject('currDir') private currDir: string,
         private path: PathService,
         private fs: FileStreamService,
-        private templates: TemplateService,
-        @inject('options') options: CliOptions,
+        private templates: TemplateService, // @inject('options') private options: CliOptions,
     ) {
-        super(options);
+        super();
     }
 
-    shouldApply(): Observable<void> {
-        /* todo: 
-            Get selected template? Will probably need to be part of a previous module. Results of that module injected directly here?
-            If basic, create. If external, run script.
-            
-            */
-
-        throw new Error('Not implemented');
+    async handle({ projectName, selectedTemplate }: UserInputNotification): Promise<void> {
+        const template = await this.templates.getTemplateDetails(selectedTemplate);
+        // .pipe(
+        //     map(template => {
+        this.#createProjectFolder(projectName);
+        this.#createDirectoryContents(this.currDir, template.path, projectName);
+        //     }),
+        // );
     }
 
-    apply(): Observable<void> {
-        return this.templates.getTemplateDetails(this.baseOptions.templateName).pipe(
-            map(template => {
-                this.#createProjectFolder();
-                this.#createDirectoryContents(
-                    this.currDir,
-                    template.path,
-                    this.baseOptions.itemName,
-                );
-            }),
-        );
-    }
-
-    #createProjectFolder(): boolean {
-        const projectPath = this.path.join(this.currDir, this.baseOptions.itemName);
+    #createProjectFolder(projectName: string): boolean {
+        const projectPath = this.path.join(this.currDir, projectName);
 
         if (this.fs.existsSync(projectPath)) {
             const msg = `Folder ${projectPath} exists. Delete or use another name.`;

@@ -1,5 +1,4 @@
 import { inject, injectable } from 'inversify';
-import { Observable, of } from 'rxjs';
 import { FileStreamService } from './Filestream.service';
 import { PathService } from './Path.service';
 
@@ -17,19 +16,19 @@ export class TemplateService {
     constructor(
         @inject('templatesPath') private templatesPath: string,
         private path: PathService,
-        private fs: FileStreamService
+        private fs: FileStreamService,
     ) {}
 
-    getTemplates(): Observable<string[]> {
-        return of(this.fs.readdirSync(this.templatesPath));
+    async getTemplates(): Promise<string[]> {
+        return this.fs.readdirSync(this.templatesPath);
     }
 
-    getTemplateDetails(templateName: string): Observable<ITemplate> {
+    async getTemplateDetails(templateName: string): Promise<ITemplate> {
         const templatePath = this.path.join(this.templatesPath, templateName);
 
-        return of({
+        return {
             name: templateName,
             path: templatePath,
-        });
+        };
     }
 }

@@ -2,8 +2,8 @@
     "name": "@arosaned/project-generator",
     "version": "0.0.1",
     "description": "Project that contains cli tools and templates to generate npm based projects",
-    "main": "dist/index.js",
-    "types": "dist/index.d.ts",
+    "main": "dist/Startup.js",
+    "types": "dist/Startup.d.ts",
     "scripts": {
         "test": "jest",
         "start": "ts-node src/index.ts",
@@ -11,7 +11,7 @@
         "install-globally": "npm run build && npm uninstall -g && npm install -g"
     },
     "bin": {
-        "arsd-generate-project": "./dist/index.js"
+        "arsd-generate-project": "./dist/Startup.js"
     },
     "author": "AroSaneD",
     "license": "MIT",

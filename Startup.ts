@@ -2,15 +2,13 @@
 
 import 'reflect-metadata';
 
-import chalk from 'chalk';
-import { catchError, of, lastValueFrom, concat, from, switchMap } from 'rxjs';
+// import chalk from 'chalk';
 import { Container } from 'inversify';
 import { CreateProjectModule } from './src/modules/CreateProject.module';
 import { PathService } from './src/services/Path.service';
-import { AModule } from './src/abstractions/AModule';
-import { UserChoiceService } from './src/services/UserChoice.service';
-import { CliOptions } from './src/abstractions/CliOptions';
-import { getTagsByProject, Tag } from './src/Tags';
+import { registerNotificationHandler } from './src/extensions/NotificationRegistry';
+import { UserInputNotification } from './src/events/UserInputNotification';
+import { UserInputModule } from './src/modules/UserInput.module';
 
 // ? extendable templates
 // todo: add environment checking
@@ -39,51 +37,69 @@ container
     .inSingletonScope();
 
 // ? Unsure how this will affect tag-dynamic injection
-container
-    .bind('options')
-    .toDynamicValue(ctx => {
-        const choice = ctx.container.get(UserChoiceService);
+// container
+//     .bind('options')
+//     .toDynamicValue(ctx => {
+//         const choice = ctx.container.get(UserChoiceService);
 
-        return lastValueFrom(choice.selectTemplate());
-    })
-    .inSingletonScope();
+//         return lastValueFrom(choice.selectTemplate());
+//     })
+//     .inSingletonScope();
 
-container.bind<AModule[]>('modules').toDynamicValue(ctx => {
-    const modulesObs = from(ctx.container.getAsync<CliOptions>('options')).pipe(
-        switchMap(options => {
-            const tags = getTagsByProject(options.templateName);
-            const modules = tags
-                .flatMap(tag => {
-                    // Append as added
-                    switch (tag) {
-                        case Tag.PROJECT:
-                            return [CreateProjectModule];
-                        default:
-                            return [];
-                    }
-                })
-                .map(m => ctx.container.getAsync(m));
+// container.bind('tags').toDynamicValue(async ctx => {
+//     const options = await ctx.container.getAsync<CliOptions>('options');
+//     const tags = getTagsByProject(options.templateName);
 
-            return Promise.all(modules);
-        }),
-    );
+//     return tags;
+// });
 
-    return lastValueFrom(modulesObs);
+// todo: error handling
+registerNotificationHandler(container, UserInputNotification, CreateProjectModule);
+
+container.getAsync(UserInputModule).then(m => {
+    m.takeInput();
 });
 
-container.getAsync<AModule[]>('modules').then(modules => {
-    // todo: get tags from project
-    // todo: get modules for each tag
-    const moduleApplies = modules.map(m => m.apply());
-    const processObs = concat(...moduleApplies).pipe(
-        catchError(err => {
-            console.log(chalk.red(err));
-            return of();
-        }),
-    );
+// todo: implement notification style emmiter, similar to how Mediatr does it
+// * technically, it still might be possible to add injectable info to the scope at runtime, might be messy
+// * Might be better idea to hold off on this until custom DI implementation available
+// * Example of mediatr in action: https://youtu.be/2TT3suofNlo?t=359
+// container.bind<AModule[]>('modules').toDynamicValue(ctx => {
+//     const modulesObs = from(ctx.container.getAsync<CliOptions>('options')).pipe(
+//         switchMap(options => {
+//             const tags = getTagsByProject(options.templateName);
+//             const modules = tags
+//                 .flatMap(tag => {
+//                     // Append as added
+//                     switch (tag) {
+//                         case Tag.PROJECT:
+//                             return [CreateProjectModule];
+//                         default:
+//                             return [];
+//                     }
+//                 })
+//                 .map(m => ctx.container.getAsync(m));
 
-    return lastValueFrom(processObs);
-});
+//             return Promise.all(modules);
+//         }),
+//     );
+
+//     return lastValueFrom(modulesObs);
+// });
+
+// container.getAsync<AModule[]>('modules').then(modules => {
+//     // todo: get tags from project
+//     // todo: get modules for each tag
+//     const moduleApplies = modules.map(m => m.apply());
+//     const processObs = concat(...moduleApplies).pipe(
+//         catchError(err => {
+//             console.log(chalk.red(err));
+//             return of();
+//         }),
+//     );
+
+//     return lastValueFrom(processObs);
+// });
 
 /* 
     Sneaking suspicion  the .NET way would be to trigger an event chain from one module to the next based on a predefined workflow
