@@ -2,15 +2,16 @@
 
 import 'reflect-metadata';
 
-import chalk from 'chalk';
-import { catchError, of, lastValueFrom, concat, from, switchMap } from 'rxjs';
+// import chalk from 'chalk';
 import { Container } from 'inversify';
 import { CreateProjectModule } from './src/modules/CreateProject.module';
 import { PathService } from './src/services/Path.service';
-import { AModule } from './src/abstractions/AModule';
-import { UserChoiceService } from './src/services/UserChoice.service';
-import { CliOptions } from './src/abstractions/CliOptions';
-import { getTagsByProject, Tag } from './src/Tags';
+import { registerNotificationHandler } from './src/extensions/NotificationRegistry';
+import { UserInputNotification } from './src/events/UserInputNotification';
+import { UserInputModule } from './src/modules/UserInput.module';
+import { NotificationService } from './src/services/Notification.service';
+import { ANotificationHandler } from './src/events/ANotificationHandler';
+import { ABaseNotification } from './src/events/ABaseNotification';
 
 // ? extendable templates
 // todo: add environment checking
@@ -39,57 +40,34 @@ container
     .inSingletonScope();
 
 // ? Unsure how this will affect tag-dynamic injection
-container
-    .bind('options')
-    .toDynamicValue(ctx => {
-        const choice = ctx.container.get(UserChoiceService);
+// container.bind('tags').toDynamicValue(async ctx => {
+//     const options = await ctx.container.getAsync<CliOptions>('options');
+//     const tags = getTagsByProject(options.templateName);
 
-        return lastValueFrom(choice.selectTemplate());
-    })
-    .inSingletonScope();
+//     return tags;
+// });
 
-container.bind<AModule[]>('modules').toDynamicValue(ctx => {
-    const modulesObs = from(ctx.container.getAsync<CliOptions>('options')).pipe(
-        switchMap(options => {
-            const tags = getTagsByProject(options.templateName);
-            const modules = tags
-                .flatMap(tag => {
-                    // Append as added
-                    switch (tag) {
-                        case Tag.PROJECT:
-                            return [CreateProjectModule];
-                        default:
-                            return [];
-                    }
-                })
-                .map(m => ctx.container.getAsync(m));
+// todo: error handling
+container.bind(UserInputModule).toSelf();
+container.bind(NotificationService).toSelf().inSingletonScope();
+registerNotificationHandler(container, UserInputNotification, CreateProjectModule);
 
-            return Promise.all(modules);
-        }),
-    );
-
-    return lastValueFrom(modulesObs);
+container.getAsync(NotificationService).then(s => {
+    s.events.subscribe(async n => {
+        const handler = await container.getAsync<ANotificationHandler<ABaseNotification>>(
+            n.constructor,
+        );
+        handler.handle(n);
+    });
 });
 
-container.getAsync<AModule[]>('modules').then(modules => {
-    // todo: get tags from project
-    // todo: get modules for each tag
-    const moduleApplies = modules.map(m => m.apply());
-    const processObs = concat(...moduleApplies).pipe(
-        catchError(err => {
-            console.log(chalk.red(err));
-            return of();
-        }),
-    );
-
-    return lastValueFrom(processObs);
+container.getAsync(UserInputModule).then(m => {
+    m.takeInput();
 });
 
-/* 
-    Sneaking suspicion  the .NET way would be to trigger an event chain from one module to the next based on a predefined workflow
-    Possible workflow would be:
-        1. Select template 
-        2. Execute builder based on template type (based on folder?)
-            2.1 Any dynamic workflows should probably be exected from inside the external template creation module?
-        3. Execute optional modules, e.g. monorepo inclusion
-*/
+// * Still need need to handle extra settings on top of project creation
+// ? Add pre-creation handlers to gather desired settings
+// ? decoration? :) 
+
+// * technically, it still might be possible to add injectable info to the scope at runtime, might be messy
+// * Might be better idea to hold off on this until custom DI implementation available
