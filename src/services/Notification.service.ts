@@ -4,10 +4,10 @@ import { ABaseNotification } from '../events/ABaseNotification';
 
 // todo: split dispatch, observer and 'router'
 @injectable()
-export class EventService {
+export class NotificationService {
     public events = new ReplaySubject<ABaseNotification>(1);
 
-    public dispatchEvent(event: ABaseNotification) {
-        this.events.next(event);
+    public dispatchNotification(notification: ABaseNotification) {
+        this.events.next(notification);
     }
 }

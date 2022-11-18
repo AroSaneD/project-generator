@@ -6,7 +6,7 @@
     "types": "dist/Startup.d.ts",
     "scripts": {
         "test": "jest",
-        "start": "ts-node src/index.ts",
+        "start": "ts-node ./Startup.ts",
         "build": "tsc && shx rm -rf dist/templates && shx cp -r templates dist",
         "install-globally": "npm run build && npm uninstall -g && npm install -g"
     },

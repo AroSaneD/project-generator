@@ -9,6 +9,9 @@ import { PathService } from './src/services/Path.service';
 import { registerNotificationHandler } from './src/extensions/NotificationRegistry';
 import { UserInputNotification } from './src/events/UserInputNotification';
 import { UserInputModule } from './src/modules/UserInput.module';
+import { NotificationService } from './src/services/Notification.service';
+import { ANotificationHandler } from './src/events/ANotificationHandler';
+import { ABaseNotification } from './src/events/ABaseNotification';
 
 // ? extendable templates
 // todo: add environment checking
@@ -54,7 +57,19 @@ container
 // });
 
 // todo: error handling
+container.bind(UserInputModule).toSelf();
+container.bind(NotificationService).toSelf().inSingletonScope();
+// container.bind()
 registerNotificationHandler(container, UserInputNotification, CreateProjectModule);
+
+container.getAsync(NotificationService).then(s => {
+    s.events.subscribe(async n => {
+        const handler = await container.getAsync<ANotificationHandler<ABaseNotification>>(
+            n.constructor,
+        );
+        handler.handle(n);
+    });
+});
 
 container.getAsync(UserInputModule).then(m => {
     m.takeInput();
