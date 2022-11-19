@@ -23,7 +23,7 @@ export class FileStreamService {
         return fs.mkdirSync(projectPath);
     }
 
-    existsSync(projectPath: string) {
-        return fs.existsSync(projectPath);
+    existsSync(fileOrFolder: string) {
+        return fs.existsSync(fileOrFolder);
     }
 }

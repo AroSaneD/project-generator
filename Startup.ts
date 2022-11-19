@@ -12,6 +12,8 @@ import { UserInputModule } from './src/modules/UserInput.module';
 import { NotificationService } from './src/services/Notification.service';
 import { ANotificationHandler } from './src/events/ANotificationHandler';
 import { ABaseNotification } from './src/events/ABaseNotification';
+import { StaticTemplateNotification } from './src/events/StaticTemplateNotification';
+import { TemplateConfigurationHandler } from './src/modules/TemplateConfiguration.module';
 
 // ? extendable templates
 // todo: add environment checking
@@ -50,7 +52,8 @@ container
 // todo: error handling
 container.bind(UserInputModule).toSelf();
 container.bind(NotificationService).toSelf().inSingletonScope();
-registerNotificationHandler(container, UserInputNotification, CreateProjectModule);
+registerNotificationHandler(container, UserInputNotification, TemplateConfigurationHandler);
+registerNotificationHandler(container, StaticTemplateNotification, CreateProjectModule);
 
 container.getAsync(NotificationService).then(s => {
     s.events.subscribe(async n => {
@@ -67,7 +70,7 @@ container.getAsync(UserInputModule).then(m => {
 
 // * Still need need to handle extra settings on top of project creation
 // ? Add pre-creation handlers to gather desired settings
-// ? decoration? :) 
+// ? decoration? :)
 
 // * technically, it still might be possible to add injectable info to the scope at runtime, might be messy
 // * Might be better idea to hold off on this until custom DI implementation available

@@ -1,13 +1,13 @@
 import { inject, injectable } from 'inversify';
 import { ANotificationHandler } from '../events/ANotificationHandler';
-import { UserInputNotification } from '../events/UserInputNotification';
+import { StaticTemplateNotification } from '../events/StaticTemplateNotification';
 import { FileStreamService } from '../services/Filestream.service';
 import { PathService } from '../services/Path.service';
 import { TemplateService } from '../services/Template.service';
 import { render } from '../utils/Template';
 
 @injectable()
-export class CreateProjectModule extends ANotificationHandler<UserInputNotification> {
+export class CreateProjectModule extends ANotificationHandler<StaticTemplateNotification> {
     private readonly SKIP_FILES = ['node_modules', '.template.json'];
 
     constructor(
@@ -19,7 +19,7 @@ export class CreateProjectModule extends ANotificationHandler<UserInputNotificat
         super();
     }
 
-    async handle({ projectName, selectedTemplate }: UserInputNotification): Promise<void> {
+    async handle({ projectName, selectedTemplate }: StaticTemplateNotification): Promise<void> {
         const template = await this.templates.getTemplateDetails(selectedTemplate);
         // .pipe(
         //     map(template => {
