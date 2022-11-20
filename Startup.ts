@@ -3,8 +3,9 @@
 import 'reflect-metadata';
 
 // import chalk from 'chalk';
+import { z } from 'zod';
 import { Container } from 'inversify';
-import { CreateProjectModule } from './src/modules/CreateProject.module';
+import { StaticProjectCreationModule } from './src/modules/StaticProjectCreation.module';
 import { PathService } from './src/services/Path.service';
 import { registerNotificationHandler } from './src/extensions/NotificationRegistry';
 import { UserInputNotification } from './src/events/UserInputNotification';
@@ -14,6 +15,7 @@ import { ANotificationHandler } from './src/events/ANotificationHandler';
 import { ABaseNotification } from './src/events/ABaseNotification';
 import { StaticTemplateNotification } from './src/events/StaticTemplateNotification';
 import { TemplateConfigurationHandler } from './src/modules/TemplateConfiguration.module';
+import { AppSettings } from './src/abstractions/AppSettings';
 
 // ? extendable templates
 // todo: add environment checking
@@ -41,6 +43,10 @@ container
     .toDynamicValue(() => CURR_DIR)
     .inSingletonScope();
 
+container
+    .bind(AppSettings)
+    .toDynamicValue(() => import('./appsettings.json').then(s => AppSettings.parse(s)));
+
 // ? Unsure how this will affect tag-dynamic injection
 // container.bind('tags').toDynamicValue(async ctx => {
 //     const options = await ctx.container.getAsync<CliOptions>('options');
@@ -49,11 +55,11 @@ container
 //     return tags;
 // });
 
-// todo: error handling
+// ? error handling
 container.bind(UserInputModule).toSelf();
 container.bind(NotificationService).toSelf().inSingletonScope();
 registerNotificationHandler(container, UserInputNotification, TemplateConfigurationHandler);
-registerNotificationHandler(container, StaticTemplateNotification, CreateProjectModule);
+registerNotificationHandler(container, StaticTemplateNotification, StaticProjectCreationModule);
 
 container.getAsync(NotificationService).then(s => {
     s.events.subscribe(async n => {
