@@ -1,5 +1,6 @@
 import { injectable } from 'inversify';
 import { ANotificationHandler } from '../events/ANotificationHandler';
+import { DynamicTemplateNotification } from '../events/DynamicTemplateNotification';
 import { StaticTemplateNotification } from '../events/StaticTemplateNotification';
 import { UserInputNotification } from '../events/UserInputNotification';
 import { NotificationService } from '../services/Notification.service';
@@ -21,7 +22,7 @@ export class TemplateConfigurationHandler extends ANotificationHandler<UserInput
             notification.selectedTemplate,
         );
 
-        if (templateOptions.options.isStatic) {
+        if (templateOptions.options.command === undefined) {
             return this.notifications.dispatchNotification(
                 new StaticTemplateNotification(
                     await this.userChoise.selectProjectName(),
@@ -30,6 +31,8 @@ export class TemplateConfigurationHandler extends ANotificationHandler<UserInput
             );
         }
 
-        throw new Error('Method not implemented.');
+        return this.notifications.dispatchNotification(
+            new DynamicTemplateNotification(templateOptions.name, templateOptions.options.command),
+        );
     }
 }

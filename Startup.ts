@@ -3,7 +3,6 @@
 import 'reflect-metadata';
 
 // import chalk from 'chalk';
-import { z } from 'zod';
 import { Container } from 'inversify';
 import { StaticProjectCreationModule } from './src/modules/StaticProjectCreation.module';
 import { PathService } from './src/services/Path.service';
@@ -16,6 +15,8 @@ import { ABaseNotification } from './src/events/ABaseNotification';
 import { StaticTemplateNotification } from './src/events/StaticTemplateNotification';
 import { TemplateConfigurationHandler } from './src/modules/TemplateConfiguration.module';
 import { AppSettings } from './src/abstractions/AppSettings';
+import { DynamicTemplateNotification } from './src/events/DynamicTemplateNotification';
+import { DynamicProjectCreationModule } from './src/modules/DynamicProjectCreation.module';
 
 // ? extendable templates
 // todo: add environment checking
@@ -58,8 +59,10 @@ container
 // ? error handling
 container.bind(UserInputModule).toSelf();
 container.bind(NotificationService).toSelf().inSingletonScope();
+
 registerNotificationHandler(container, UserInputNotification, TemplateConfigurationHandler);
 registerNotificationHandler(container, StaticTemplateNotification, StaticProjectCreationModule);
+registerNotificationHandler(container, DynamicTemplateNotification, DynamicProjectCreationModule);
 
 container.getAsync(NotificationService).then(s => {
     s.events.subscribe(async n => {

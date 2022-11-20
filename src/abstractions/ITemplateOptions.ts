@@ -1,5 +1,4 @@
 export interface ITemplateOptions {
-    isStatic: boolean;
     command?: string;
 }
 
