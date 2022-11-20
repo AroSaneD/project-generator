@@ -10,6 +10,9 @@ export class DynamicProjectCreationModule extends ANotificationHandler<DynamicTe
     }
 
     async handle(notification: DynamicTemplateNotification): Promise<void> {
-        this.process.execute(notification.command);
+        // ? Some templates might require name prior to starting... Leave for now, but keep in mind
+        await this.process.execute(notification.command);
+        // todo: forward to a module for optional setup, e.g. eslint, prettier, monorepo integration, etc...
+        // ? Should the static template handler forward it as well?
     }
 }

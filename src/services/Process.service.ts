@@ -1,9 +1,13 @@
 import { injectable } from 'inversify';
-import { execSync } from 'child_process';
+import { spawn } from 'child_process';
 
 @injectable()
 export class ProcessService {
-    public execute(command: string) {
-        execSync(command);
+    public async execute(command: string) {
+        return new Promise<void>(res => {
+            const [first, ...rest] = command.split(' ');
+            const shell = spawn(first, rest, { stdio: 'inherit' });
+            shell.on('close', res);
+        });
     }
 }

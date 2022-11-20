@@ -1,4 +1,4 @@
 {
     "isStatic": false,
-    "command": "pnpm create vite"
+    "command": "pnpm create vite@latest"
 }
