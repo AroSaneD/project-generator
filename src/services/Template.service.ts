@@ -1,10 +1,12 @@
 import { inject, injectable } from 'inversify';
+import { ITemplateOptions } from '../abstractions/ITemplateOptions';
 import { FileStreamService } from './Filestream.service';
 import { PathService } from './Path.service';
 
 interface ITemplate {
     name: string;
     path: string;
+    options: ITemplateOptions;
 }
 
 // todo: Currently only supports one type of templates.
@@ -25,10 +27,23 @@ export class TemplateService {
 
     async getTemplateDetails(templateName: string): Promise<ITemplate> {
         const templatePath = this.path.join(this.templatesPath, templateName);
+        const optionsPath = this.path.join(
+            this.templatesPath,
+            templateName,
+            '#config',
+            'options.json',
+        );
+
+        const templateOptions = this.fs.existsSync(optionsPath)
+            ? (JSON.parse(this.fs.readFileSync(optionsPath)) as ITemplateOptions)
+            : ({ isStatic: false } as ITemplateOptions);
+
+        console.log('Template options: ', templateOptions);
 
         return {
             name: templateName,
             path: templatePath,
+            options: templateOptions,
         };
     }
 }

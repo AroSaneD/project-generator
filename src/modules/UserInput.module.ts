@@ -8,10 +8,8 @@ export class UserInputModule {
     constructor(private events: NotificationService, private userChoice: UserChoiceService) {}
 
     public async takeInput() {
-        const choices = await this.userChoice.selectTemplate();
+        const templateName = await this.userChoice.selectTemplate();
 
-        this.events.dispatchNotification(
-            new UserInputNotification(choices.itemName, choices.templateName),
-        );
+        this.events.dispatchNotification(new UserInputNotification(templateName));
     }
 }

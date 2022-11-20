@@ -1,0 +1,4 @@
+{
+    "isStatic": false,
+    "command": "npm create svelte@latest"
+}

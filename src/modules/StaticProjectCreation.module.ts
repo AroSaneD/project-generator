@@ -1,16 +1,16 @@
 import { inject, injectable } from 'inversify';
+import { AppSettings } from '../abstractions/AppSettings';
 import { ANotificationHandler } from '../events/ANotificationHandler';
-import { UserInputNotification } from '../events/UserInputNotification';
+import { StaticTemplateNotification } from '../events/StaticTemplateNotification';
 import { FileStreamService } from '../services/Filestream.service';
 import { PathService } from '../services/Path.service';
 import { TemplateService } from '../services/Template.service';
 import { render } from '../utils/Template';
 
 @injectable()
-export class CreateProjectModule extends ANotificationHandler<UserInputNotification> {
-    private readonly SKIP_FILES = ['node_modules', '.template.json'];
-
+export class StaticProjectCreationModule extends ANotificationHandler<StaticTemplateNotification> {
     constructor(
+        private settings: AppSettings,
         @inject('currDir') private currDir: string,
         private path: PathService,
         private fs: FileStreamService,
@@ -19,7 +19,7 @@ export class CreateProjectModule extends ANotificationHandler<UserInputNotificat
         super();
     }
 
-    async handle({ projectName, selectedTemplate }: UserInputNotification): Promise<void> {
+    async handle({ projectName, selectedTemplate }: StaticTemplateNotification): Promise<void> {
         const template = await this.templates.getTemplateDetails(selectedTemplate);
         // .pipe(
         //     map(template => {
@@ -46,13 +46,14 @@ export class CreateProjectModule extends ANotificationHandler<UserInputNotificat
         const filesToCreate = this.fs.readdirSync(templatePath);
         // loop each file/folder
         filesToCreate.forEach(file => {
+            if (this.settings.SkipableTemplateFiles.indexOf(file) > -1) return;
+
             const origFilePath = this.path.join(templatePath, file);
 
             // get stats about the current file
             const stats = this.fs.statSync(origFilePath);
 
             // skip files that should not be copied
-            if (this.SKIP_FILES.indexOf(file) > -1) return;
 
             if (stats.isFile()) {
                 // read file content and transform it using template engine

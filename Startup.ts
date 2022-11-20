@@ -4,7 +4,7 @@ import 'reflect-metadata';
 
 // import chalk from 'chalk';
 import { Container } from 'inversify';
-import { CreateProjectModule } from './src/modules/CreateProject.module';
+import { StaticProjectCreationModule } from './src/modules/StaticProjectCreation.module';
 import { PathService } from './src/services/Path.service';
 import { registerNotificationHandler } from './src/extensions/NotificationRegistry';
 import { UserInputNotification } from './src/events/UserInputNotification';
@@ -12,6 +12,11 @@ import { UserInputModule } from './src/modules/UserInput.module';
 import { NotificationService } from './src/services/Notification.service';
 import { ANotificationHandler } from './src/events/ANotificationHandler';
 import { ABaseNotification } from './src/events/ABaseNotification';
+import { StaticTemplateNotification } from './src/events/StaticTemplateNotification';
+import { TemplateConfigurationHandler } from './src/modules/TemplateConfiguration.module';
+import { AppSettings } from './src/abstractions/AppSettings';
+import { DynamicTemplateNotification } from './src/events/DynamicTemplateNotification';
+import { DynamicProjectCreationModule } from './src/modules/DynamicProjectCreation.module';
 
 // ? extendable templates
 // todo: add environment checking
@@ -39,6 +44,10 @@ container
     .toDynamicValue(() => CURR_DIR)
     .inSingletonScope();
 
+container
+    .bind(AppSettings)
+    .toDynamicValue(() => import('./appsettings.json').then(s => AppSettings.parse(s)));
+
 // ? Unsure how this will affect tag-dynamic injection
 // container.bind('tags').toDynamicValue(async ctx => {
 //     const options = await ctx.container.getAsync<CliOptions>('options');
@@ -47,10 +56,13 @@ container
 //     return tags;
 // });
 
-// todo: error handling
+// ? error handling
 container.bind(UserInputModule).toSelf();
 container.bind(NotificationService).toSelf().inSingletonScope();
-registerNotificationHandler(container, UserInputNotification, CreateProjectModule);
+
+registerNotificationHandler(container, UserInputNotification, TemplateConfigurationHandler);
+registerNotificationHandler(container, StaticTemplateNotification, StaticProjectCreationModule);
+registerNotificationHandler(container, DynamicTemplateNotification, DynamicProjectCreationModule);
 
 container.getAsync(NotificationService).then(s => {
     s.events.subscribe(async n => {
@@ -67,7 +79,7 @@ container.getAsync(UserInputModule).then(m => {
 
 // * Still need need to handle extra settings on top of project creation
 // ? Add pre-creation handlers to gather desired settings
-// ? decoration? :) 
+// ? decoration? :)
 
 // * technically, it still might be possible to add injectable info to the scope at runtime, might be messy
 // * Might be better idea to hold off on this until custom DI implementation available
