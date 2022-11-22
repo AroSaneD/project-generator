@@ -48,14 +48,6 @@ container
     .bind(AppSettings)
     .toDynamicValue(() => import('./appsettings.json').then(s => AppSettings.parse(s)));
 
-// ? Unsure how this will affect tag-dynamic injection
-// container.bind('tags').toDynamicValue(async ctx => {
-//     const options = await ctx.container.getAsync<CliOptions>('options');
-//     const tags = getTagsByProject(options.templateName);
-
-//     return tags;
-// });
-
 // ? error handling
 container.bind(UserInputModule).toSelf();
 container.bind(NotificationService).toSelf().inSingletonScope();
@@ -78,7 +70,6 @@ container.getAsync(UserInputModule).then(m => {
 });
 
 // * Still need need to handle extra settings on top of project creation
-// ? Add pre-creation handlers to gather desired settings
 // ? decoration? :)
 
 // * technically, it still might be possible to add injectable info to the scope at runtime, might be messy
