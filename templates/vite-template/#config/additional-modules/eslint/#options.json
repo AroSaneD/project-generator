@@ -1,0 +1,6 @@
+{
+    "question": "Include eslint support?",
+    "type": "boolean",
+    "mode": "overwrite",
+    "commands": ["pnpm add eslint"]
+}

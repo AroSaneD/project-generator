@@ -1,0 +1,6 @@
+{
+    "question": "Include easier workspace support?",
+    "type": "boolean",
+    "mode": "overwrite",
+    "commands": ["pnpm add -D prettier"]
+}
